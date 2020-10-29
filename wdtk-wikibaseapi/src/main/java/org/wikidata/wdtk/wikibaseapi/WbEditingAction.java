@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.wikidata.wdtk.datamodel.helpers.DatamodelMapper;
 import org.wikidata.wdtk.datamodel.implementation.EntityDocumentImpl;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocument;
+import org.wikidata.wdtk.datamodel.interfaces.EntityIdValue;
+import org.wikidata.wdtk.datamodel.interfaces.ValueVisitor;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MaxlagErrorException;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 import org.wikidata.wdtk.wikibaseapi.apierrors.TokenErrorException;
@@ -304,12 +306,74 @@ public class WbEditingAction {
 		if (clear) {
 			parameters.put("clear", "");
 		}
-		
+
 		JsonNode response = performAPIAction("wbeditentity", id, site, title,
 				newEntity, parameters, summary, tags, baserevid, bot);
-		return getEntityDocumentFromResponse(response);
+
+		if (safelyStartsWith(id, "L") || "lexeme".equals(newEntity)) {
+			return buildEntityDocumentFromBrokenResponse(response);
+		} else {
+			return getEntityDocumentFromResponse(response);
+		}
 	}
-	
+
+	private boolean safelyStartsWith(String id, String prefix) {
+		if (id == null || id.isEmpty()) {
+			return false;
+		}
+		return id.startsWith(prefix);
+	}
+
+	private EntityDocument buildEntityDocumentFromBrokenResponse(JsonNode response) throws MediaWikiApiErrorException {
+		final String entity = "entity";
+		if (response.has(entity)) {
+			String id = response.get(entity).get("id").asText();
+			return new EntityDocument() {
+				@Override
+				public EntityIdValue getEntityId() {
+					return new EntityIdValue() {
+						@Override
+						public String getEntityType() {
+							return ET_LEXEME;
+						}
+
+						@Override
+						public String getId() {
+							return id;
+						}
+
+						@Override
+						public String getSiteIri() {
+							return siteIri;
+						}
+
+						@Override
+						public String getIri() {
+							return EntityIdValue.SITE_LOCAL;
+						}
+
+						@Override
+						public <T> T accept(ValueVisitor<T> valueVisitor) {
+							return valueVisitor.visit(this);
+						}
+					};
+				}
+
+				@Override
+				public long getRevisionId() {
+					return 0;
+				}
+
+				@Override
+				public EntityDocument withRevisionId(long newRevisionId) {
+					return null;
+				}
+			};
+		} else {
+			throw new MediaWikiApiErrorException("[missing-field]", "Missing 'entity' field in MediaWiki response");
+		}
+	}
+
 	/**
 	 * Executes the API action "wbsetlabel" for the given parameters.
 	 * @param id

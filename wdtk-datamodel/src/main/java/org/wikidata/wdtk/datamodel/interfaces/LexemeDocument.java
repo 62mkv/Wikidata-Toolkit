@@ -9,9 +9,9 @@ package org.wikidata.wdtk.datamodel.interfaces;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -136,10 +136,19 @@ public interface LexemeDocument extends StatementDocument {
 	FormDocument createForm(List<MonolingualTextValue> representations);
 
 	/**
-	 * Adds a {@link FormDocument} to this lexeme.
-	 * The form id should be prefixed with the lexeme id.
+	 * Creates a new {@link FormDocument} for this lexeme.
+	 * The form is not added to the {@link LexemeDocument} object,
+	 * it should be done with {@link LexemeDocument#withForm}.
 	 */
-	LexemeDocument withForm(FormDocument form);
+	FormDocument createForm(List<MonolingualTextValue> representations, List<ItemIdValue> grammaticalFeatures);
+
+	FormDocument createForm(List<MonolingualTextValue> representations, List<ItemIdValue> grammaticalFeatures, List<StatementGroup> statements);
+
+			/**
+             * Adds a {@link FormDocument} to this lexeme.
+             * The form id should be prefixed with the lexeme id.
+             */
+    LexemeDocument withForm(FormDocument form);
 
 	/**
 	 * Creates a new {@link SenseDocument} for this Lexeme.

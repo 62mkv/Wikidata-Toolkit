@@ -22,6 +22,9 @@ package org.wikidata.wdtk.datamodel.implementation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import org.junit.Before;
 import org.junit.Test;
 import org.wikidata.wdtk.datamodel.helpers.DatamodelMapper;
 import org.wikidata.wdtk.datamodel.interfaces.*;
@@ -53,6 +56,11 @@ public class FormDocumentImplTest {
 	private final FormDocument fd2 = new FormDocumentImpl(fid, repList, gramFeatures, statementGroups, 1234);
 
 	private final String JSON_FORM = "{\"type\":\"form\",\"id\":\"L42-F1\",\"grammaticalFeatures\":[\"Q1\",\"Q2\"],\"representations\":{\"en\":{\"language\":\"en\",\"value\":\"rep\"}},\"claims\":{\"P42\":[{\"rank\":\"normal\",\"id\":\"MyId\",\"mainsnak\":{\"property\":\"P42\",\"snaktype\":\"somevalue\"},\"type\":\"statement\"}]},\"lastrevid\":1234}";
+
+	@Before
+	public void setUp() {
+		mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("formDocumentJsonFilter", new SimpleBeanPropertyFilter.SerializeExceptFilter(Collections.singleton("add")))));
+	}
 
 	@Test
 	public void fieldsAreCorrect() {

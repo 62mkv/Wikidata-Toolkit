@@ -27,6 +27,7 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class that provides high-level editing functionality for Wikibase data.
@@ -290,6 +291,30 @@ public class WikibaseDataEditor {
 		String data = JsonSerializer.getJsonString(itemDocument);
 		return (ItemDocument) this.wbEditingAction.wbEditEntity(null, null,
 				null, "item", data, false, this.editAsBot, 0, summary, tags);
+	}
+
+	/**
+	 * This currently fails due to https://phabricator.wikimedia.org/T202725
+	 * @param lexemeDocument
+	 * @param summary
+	 * @param tags
+	 * @return
+	 * @throws IOException
+	 * @throws MediaWikiApiErrorException
+	 */
+	public LexemeDocument createLexemeDocument(LexemeDocument lexemeDocument, String summary, List<String> tags) throws IOException, MediaWikiApiErrorException {
+		String data = JsonSerializer.getJsonString(lexemeDocument);
+		EntityDocument response = this.wbEditingAction.wbEditEntity(null, null,
+				null, "lexeme", data, false, this.editAsBot, 0, summary, tags);
+		return (LexemeDocument) wikibaseDataFetcher.getEntityDocument(response.getEntityId().getId());
+	}
+
+	public LexemeDocument updateLexemeDocument(LexemeDocument lexemeDocument, String summary, List<String> tags) throws IOException, MediaWikiApiErrorException {
+		String data = JsonSerializer.getJsonString(lexemeDocument);
+		final String id = Objects.requireNonNull(lexemeDocument.getEntityId().getId());
+		EntityDocument response = this.wbEditingAction.wbEditEntity(id, null,
+				null, null, data, false, this.editAsBot, 0, summary, tags);
+		return (LexemeDocument) wikibaseDataFetcher.getEntityDocument(response.getEntityId().getId());
 	}
 
 	/**

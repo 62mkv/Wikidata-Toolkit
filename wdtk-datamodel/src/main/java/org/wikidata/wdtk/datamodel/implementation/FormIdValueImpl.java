@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 @JsonDeserialize()
 public class FormIdValueImpl extends ValueImpl implements FormIdValue {
 
-	private static final Pattern PATTERN = Pattern.compile("^L[1-9]\\d*-F[1-9]\\d*$");
+	private static final Pattern PATTERN = Pattern.compile("^L[0-9]\\d*-F[0-9]\\d*$");
 
 	private final String id;
 	private final String siteIri;

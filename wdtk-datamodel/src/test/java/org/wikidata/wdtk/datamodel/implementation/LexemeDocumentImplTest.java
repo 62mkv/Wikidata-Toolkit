@@ -22,6 +22,9 @@ package org.wikidata.wdtk.datamodel.implementation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import org.junit.Before;
 import org.junit.Test;
 import org.wikidata.wdtk.datamodel.helpers.Datamodel;
 import org.wikidata.wdtk.datamodel.helpers.DatamodelMapper;
@@ -70,6 +73,11 @@ public class LexemeDocumentImplTest {
 	private final LexemeDocument ld2 = new LexemeDocumentImpl(lid, lexCat, language, lemmaList, statementGroups, forms, senses, 1234);
 
 	private final String JSON_LEXEME = "{\"type\":\"lexeme\",\"id\":\"L42\",\"lexicalCategory\":\"Q1\",\"language\":\"Q2\",\"lemmas\":{\"en\":{\"language\":\"en\",\"value\":\"lemma\"}},\"claims\":{\"P42\":[{\"rank\":\"normal\",\"id\":\"MyId\",\"mainsnak\":{\"property\":\"P42\",\"snaktype\":\"somevalue\"},\"type\":\"statement\"}]},\"forms\":[{\"type\":\"form\",\"id\":\"L42-F1\",\"representations\":{\"en\":{\"language\":\"en\",\"value\":\"foo\"}},\"grammaticalFeatures\":[],\"claims\":{}}],\"senses\":[{\"type\":\"sense\",\"id\":\"L42-S1\",\"glosses\":{\"en\":{\"language\":\"en\",\"value\":\"foo meaning\"}},\"claims\":{}}],\"lastrevid\":1234}";
+
+	@Before
+	public void setUp() {
+		mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("formDocumentJsonFilter", new SimpleBeanPropertyFilter.SerializeExceptFilter(Collections.singleton("add")))));
+	}
 
 	@Test
 	public void fieldsAreCorrect() {
@@ -258,7 +266,7 @@ public class LexemeDocumentImplTest {
 	@Test
 	public void testWithForm() {
 		FormDocument newForm = ld1.createForm(Collections.singletonList(new TermImpl("en", "add1")));
-		assertEquals(lid, newForm.getEntityId().getLexemeId());
+		assertEquals(LexemeIdValue.NULL, newForm.getEntityId().getLexemeId());
 		assertEquals(ld1.getForms().size() + 1, ld1.withForm(newForm).getForms().size());
 		assertEquals(newForm, ld1.withForm(newForm).getForm(newForm.getEntityId()));
 	}

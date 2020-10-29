@@ -23,16 +23,17 @@ package org.wikidata.wdtk.datamodel.helpers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocument;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentDumpProcessor;
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.LexemeDocument;
-import org.wikidata.wdtk.datamodel.interfaces.MediaInfoDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.datamodel.interfaces.Statement;
+import org.wikidata.wdtk.datamodel.interfaces.*;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -71,6 +72,40 @@ public class JsonSerializer implements EntityDocumentDumpProcessor {
 	protected static final ObjectMapper mapper = new ObjectMapper();
 	static {
 		mapper.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+		mapper.setFilterProvider(new SimpleFilterProvider(Collections.singletonMap("formDocumentJsonFilter", buildFormDocumentJsonFilter())));
+	}
+
+	private static PropertyFilter buildFormDocumentJsonFilter() {
+		return new SimpleBeanPropertyFilter() {
+			@Override
+			protected boolean include(BeanPropertyWriter writer) {
+				return true;
+			}
+
+			@Override
+			protected boolean include(PropertyWriter writer) {
+				return true;
+			}
+
+			@Override
+			public void serializeAsField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+				if (include(writer)) {
+					if (!writer.getName().equals("add")) {
+						writer.serializeAsField(pojo, jgen, provider);
+					} else {
+						FormDocument formDocument = (FormDocument) pojo;
+						if (FormIdValue.NULL.equals(formDocument.getEntityId())) {
+							writer.serializeAsField(pojo, jgen, provider);
+						} else {
+							if (!jgen.canOmitFields()) {
+								writer.serializeAsOmittedField(pojo, jgen, provider);
+							}
+						}
+					}
+
+				}
+			}
+		};
 	}
 
 	/**
@@ -182,6 +217,10 @@ public class JsonSerializer implements EntityDocumentDumpProcessor {
 	 */
 	public static String getJsonString(ItemDocument itemDocument) {
 		return jacksonObjectToString(itemDocument);
+	}
+
+	public static String getJsonString(LexemeDocument lexemeDocument) {
+		return jacksonObjectToString(lexemeDocument);
 	}
 
 	/**

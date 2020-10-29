@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.wikidata.wdtk</groupId>
 		<artifactId>wdtk-parent</artifactId>
-		<version>0.11.1</version>
+		<version>0.11.1-mkv</version>
 	</parent>
 
 	<artifactId>wdtk-wikibaseapi</artifactId>
@@ -48,7 +48,12 @@
 			<artifactId>okhttp-signpost</artifactId>
 			<version>${okhttpSignpostVersion}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.30</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>
